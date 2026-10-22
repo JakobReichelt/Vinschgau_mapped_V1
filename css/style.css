@@ -51,6 +51,12 @@ canvas {
     color: #444;
 }
 
+/* "Search a river …" in a darker river blue, as bright as the grey path
+   placeholder */
+.river-field::placeholder {
+    color: #3a3a94;
+}
+
 /* The automatically completed part of a name */
 .search-field::selection {
     background: #333;

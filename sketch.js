@@ -3,9 +3,10 @@
 // Hover a name to preview that path or river, click it to select it:
 // everything else gets faint, the lines close to it fade in.
 // A path and a river can be selected at the same time.
-// Click an empty cell to see everything again.
-// The top and bottom rows are search fields: type a river name at the top
-// or a path name at the bottom: the name completes itself,
+// Click a selected name again to deselect it, click an empty cell to see
+// everything again.
+// The bottom row has two search fields: type a path name on the left or a
+// river name on the right: the name completes itself,
 // arrow up / down switch between the fitting names, Enter takes it.
 // They also show the selected or hovered path / river.
 // Press "s" to download the current picture as an SVG file.
@@ -35,7 +36,7 @@ const WATER_MIN_OPACITY = 0.15;
 const PATH_FADE_RADIUS = 60;
 const WATER_FADE_RADIUS = 80;
 
-// Small river names on the map (the river name in the top row stays)
+// Small river names on the map (the river name in the bottom row stays)
 const SHOW_WATER_LABELS = false;
 
 // The SVG only refers to the font by name: it shows up correctly
@@ -74,7 +75,7 @@ let hoveredCell = -1;     // grid cell under the mouse (-1 = none)
 let hoveredPath = null;   // name of the path in the hovered cell
 let hoveredRiver = null;  // name of the river in the hovered cell
 
-// Search fields in the top row (rivers) and bottom row (paths)
+// Search fields in the bottom row: paths on the left, rivers on the right
 let pathInput;
 let riverInput;
 let pathNames = [];   // all path names, A to Z
@@ -161,7 +162,7 @@ function draw() {
         }
     }
 
-    // The big names in the top and bottom row are the search fields
+    // The big names in the bottom row are the search fields
     // (HTML inputs on top of the canvas, see makeSearchFields)
 }
 
@@ -184,12 +185,22 @@ function mouseClicked(event) {
 
     // A path cell selects its path, a river cell its river (the same as
     // typing the name into the search field). The other selection stays.
-    // An empty cell deselects both.
+    // Clicking a selected cell deselects it, an empty cell deselects both.
     let cell = cellUnderMouse();
     let item = cell === -1 ? null : cellItems[cell];
     if (item === null) {
         selectPath(null);
         selectRiver(null);
+    } else if (cell === pathCell || cell === riverCell) {
+        // Stop the hover preview too, otherwise the deselected path / river
+        // would stay visible until the mouse leaves the cell
+        hoveredPath = null;
+        hoveredRiver = null;
+        if (item.type === "path") {
+            selectPath(null);
+        } else {
+            selectRiver(null);
+        }
     } else if (item.type === "path") {
         selectPath(item.name);
     } else {
@@ -401,11 +412,13 @@ function makeSearchFields() {
     riverNames.sort();
 
     pathInput = makeSearchField(pathNames, grid.rows - 1, LEFT, "#ffffff", "Search a path …", selectPath);
-    riverInput = makeSearchField(riverNames, 0, RIGHT, "#6464ff", "Search a river …", selectRiver);
+    riverInput = makeSearchField(riverNames, grid.rows - 1, RIGHT, "#6464ff", "Search a river …", selectRiver);
+    riverInput.addClass("river-field");
 }
 
-// An <input> over a whole grid row. onPick(name) is called whenever
-// the field shows a name (or null when no name fits).
+// An <input> over the left (side LEFT) or right (side RIGHT) half of a
+// grid row. onPick(name) is called whenever the field shows a name
+// (or null when no name fits).
 function makeSearchField(names, row, side, textColor, placeholder, onPick) {
     let layout = rowTextLayout(row, side);
     let input = createInput("");
@@ -414,8 +427,8 @@ function makeSearchField(names, row, side, textColor, placeholder, onPick) {
     input.attribute("autocomplete", "off");
     input.attribute("spellcheck", "false");
     input.addClass("search-field");
-    input.position(0, row * grid.cellH);
-    input.size(width, grid.cellH);
+    input.position(side === LEFT ? 0 : width / 2, row * grid.cellH);
+    input.size(width / 2, grid.cellH);
     input.style("font-size", layout.size + "px");
     input.style("color", textColor);
     input.style("text-align", side === LEFT ? "left" : "right");
@@ -993,6 +1006,7 @@ function saveSvg() {
         }
         svg.push(svgPolyline(river.points, extra));
     }
+
     svg.push(`</g>`);
 
     if (SHOW_WATER_LABELS) {
@@ -1003,7 +1017,7 @@ function saveSvg() {
         svgAddRowText(svg, shownPath(), grid.rows - 1, LEFT, "#ffffff");
     }
     if (shownRiver() !== null) {
-        svgAddRowText(svg, shownRiver(), 0, RIGHT, "#6464ff");
+        svgAddRowText(svg, shownRiver(), grid.rows - 1, RIGHT, "#6464ff");
     }
 
     svg.push(`</svg>`);
