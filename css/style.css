@@ -1,0 +1,57 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    /* The canvas fills the window: no scrollbars, so the search
+       fields stay exactly on top of the canvas rows */
+    overflow: hidden;
+}
+
+/* All canvases lie on top of each other in the top left corner:
+   the map pictures (drawn once) at the bottom, the p5 canvas with the
+   highlighted lines above them (it is transparent), the search fields on top.
+   The classes are set in sketch.js. */
+canvas {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.map-picture {
+    z-index: 0;
+}
+
+.sketch-canvas {
+    z-index: 1;
+}
+
+/* The same font as in the sketch, for the HTML search fields */
+@font-face {
+    font-family: "Canilari";
+    src: url("../assets/Font canilari/Canilari-Pro.ttf");
+}
+
+/* Search fields in the top and bottom row: only the text is visible */
+.search-field {
+    z-index: 2;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    font-family: "Canilari", sans-serif;
+    line-height: 1;
+}
+
+.search-field::placeholder {
+    color: #444;
+}
+
+/* The automatically completed part of a name */
+.search-field::selection {
+    background: #333;
+}
